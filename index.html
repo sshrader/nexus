@@ -6,53 +6,53 @@
 <title>NULLWAVE // Shielded Settlement Network (Simulation)</title>
 <style>
   :root{
-    --bg:#05060d; --panel:rgba(12,16,32,.72); --line:rgba(120,140,255,.18);
-    --cyan:#00f0ff; --green:#14f195; --violet:#9945ff; --pink:#ff3df2; --text:#cfd8ff; --dim:#6b78a8;
+    --bg:#07090a; --panel:rgba(13,17,16,.86); --line:rgba(140,170,150,.17);
+    --cyan:#8fb8a8; --green:#5fae8a; --violet:#b39b5c; --pink:#c0624f; --text:#b9c4bd; --dim:#667369;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px;overflow-x:hidden;min-height:100vh}
   #bg{position:fixed;inset:0;z-index:0}
-  .scan{position:fixed;inset:0;pointer-events:none;z-index:5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px)}
+  .scan{position:fixed;inset:0;pointer-events:none;z-index:5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.008) 0 1px,transparent 1px 3px)}
   .wrap{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:20px}
   header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-  .logo{font-size:22px;letter-spacing:.35em;font-weight:700;background:linear-gradient(90deg,var(--green),var(--cyan),var(--violet));-webkit-background-clip:text;color:transparent}
+  .logo{font-size:22px;letter-spacing:.35em;font-weight:700;background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;color:transparent}
   .logo small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);-webkit-text-fill-color:var(--dim)}
-  .badge{border:1px solid var(--line);padding:6px 12px;border-radius:999px;background:var(--panel);color:var(--dim)}
-  .badge b{color:var(--green)} .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);margin-right:6px;animation:pulse 1.4s infinite}
+  .badge{border:1px solid var(--line);padding:6px 12px;border-radius:3px;background:var(--panel);color:var(--dim)}
+  .badge b{color:var(--green)} .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 1.4s infinite}
   @keyframes pulse{50%{opacity:.3}}
   .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(10px);position:relative;overflow:hidden}
-  .card::before{content:"";position:absolute;inset:0;border-radius:14px;padding:1px;background:linear-gradient(135deg,rgba(0,240,255,.5),transparent 40%,rgba(153,69,255,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px;backdrop-filter:blur(10px);position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;inset:0;border-radius:3px;padding:1px;background:linear-gradient(135deg,rgba(143,184,168,.5),transparent 40%,rgba(179,155,92,.45));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
   h2{font-size:11px;letter-spacing:.28em;color:var(--dim);margin-bottom:12px;text-transform:uppercase}
   .stat{grid-column:span 3}
-  .stat .v{font-size:30px;font-weight:700;color:#fff;text-shadow:0 0 18px rgba(0,240,255,.5)}
+  .stat .v{font-size:30px;font-weight:700;color:#fff;}
   .stat .s{color:var(--dim);margin-top:4px;font-size:11px}
   .wide{grid-column:span 8} .side{grid-column:span 4} .half{grid-column:span 6} .full{grid-column:span 12}
   @media(max-width:900px){.stat{grid-column:span 6}.wide,.side,.half{grid-column:span 12}}
   canvas.spark{width:100%;height:120px;display:block}
   #feed{height:330px;overflow:hidden;display:flex;flex-direction:column-reverse}
-  .tx{display:grid;grid-template-columns:70px 1fr 90px;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(120,140,255,.12);animation:in .5s ease}
-  @keyframes in{from{opacity:0;transform:translateY(-8px);background:rgba(0,240,255,.15)}}
+  .tx{display:grid;grid-template-columns:70px 1fr 90px;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(140,170,150,.12);animation:in .5s ease}
+  @keyframes in{from{opacity:0;transform:translateY(-8px);background:rgba(143,184,168,.12)}}
   .tx .h{color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tx .a{color:var(--dim);text-align:right}
   .tag{font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid}
   .tag.z{color:var(--violet);border-color:var(--violet)} .tag.s{color:var(--green);border-color:var(--green)} .tag.m{color:var(--pink);border-color:var(--pink)}
   label{display:block;color:var(--dim);font-size:11px;margin:10px 0 4px;letter-spacing:.15em}
-  input,select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);color:#fff;padding:10px;border-radius:8px;font:inherit;outline:none}
-  input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.3)}
-  button{margin-top:14px;width:100%;padding:12px;border:0;border-radius:8px;font:inherit;font-weight:700;letter-spacing:.2em;cursor:pointer;color:#001014;background:linear-gradient(90deg,var(--green),var(--cyan));transition:.2s}
-  button:hover{filter:brightness(1.15);box-shadow:0 0 24px rgba(20,241,149,.5)} button:disabled{opacity:.4;cursor:wait}
+  input,select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);color:#fff;padding:10px;border-radius:3px;font:inherit;outline:none}
+  input:focus,select:focus{border-color:var(--cyan);}
+  button{margin-top:14px;width:100%;padding:12px;border:0;border-radius:3px;font:inherit;font-weight:700;letter-spacing:.2em;cursor:pointer;color:#06100c;background:linear-gradient(90deg,var(--green),var(--cyan));transition:.2s}
+  button:hover{filter:brightness(1.12);} button:disabled{opacity:.4;cursor:wait}
   #proc{margin-top:14px;min-height:150px}
   .step{display:flex;gap:8px;align-items:center;padding:4px 0;color:var(--dim)}
   .step.on{color:var(--cyan)} .step.done{color:var(--green)}
   .step .i{width:14px;text-align:center}
   .bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:10px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--cyan))}
-  .receipt{margin-top:12px;padding:10px;border:1px solid var(--green);border-radius:8px;color:var(--green);word-break:break-all;font-size:11px;display:none}
+  .receipt{margin-top:12px;padding:10px;border:1px solid var(--green);border-radius:3px;color:var(--green);word-break:break-all;font-size:11px;display:none}
   #vals{display:grid;grid-template-columns:repeat(auto-fill,minmax(26px,1fr));gap:5px}
-  .val{aspect-ratio:1;border-radius:5px;background:rgba(20,241,149,.25);border:1px solid rgba(20,241,149,.5);transition:.3s}
-  .val.lead{background:var(--cyan);box-shadow:0 0 14px var(--cyan)} .val.slow{background:rgba(255,61,242,.3);border-color:var(--pink)}
-  .addr{color:var(--violet)} .wallet-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(120,140,255,.12)}
+  .val{aspect-ratio:1;border-radius:5px;background:rgba(95,174,138,.2);border:1px solid rgba(95,174,138,.4);transition:.3s}
+  .val.lead{background:var(--cyan);} .val.slow{background:rgba(192,98,79,.3);border-color:var(--pink)}
+  .addr{color:var(--violet)} .wallet-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(140,170,150,.12)}
   .blur{filter:blur(5px);transition:.3s;cursor:pointer}.blur:hover{filter:none}
   footer{margin:24px 0 8px;text-align:center;color:var(--dim);font-size:11px}
 </style>
@@ -77,13 +77,6 @@
 
     <div class="card wide"><h2>Mempool · Encrypted Transaction Stream</h2><div id="feed"></div></div>
 
-    <div class="card full" id="scanCard"><h2>Live Token Scan · Real Mainnet Data (on demand)</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <input id="mint" placeholder="Paste a token mint address (CA)" style="flex:1;min-width:260px">
-        <button id="scanBtn" style="width:auto;margin:0;padding:10px 24px">SCAN ONCE</button>
-      </div>
-      <div id="scanOut" style="margin-top:14px;color:var(--dim)">Runs only when you press the button. Results are cached for 60s. This data is public and real.</div>
-    </div>
 
     <div class="card side">
       <h2>Send Shielded Transfer</h2>
@@ -110,8 +103,15 @@
       <div class="step done"><span class="i">✓</span>Onchain verifier program (BPF)</div>
       <div class="step done"><span class="i">✓</span>Stealth address rotation per payment</div>
     </div>
+    <div class="card full" id="scanCard"><h2>Live Token Scan · Real Mainnet Data (on demand)</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input id="mint" placeholder="Paste a token mint address (CA)" style="flex:1;min-width:260px">
+        <button id="scanBtn" style="width:auto;margin:0;padding:10px 24px">SCAN ONCE</button>
+      </div>
+      <div id="scanOut" style="margin-top:14px;color:var(--dim)">Runs only when you press the button. Results are cached for 60s. This data is public and real.</div>
+    </div>
   </div>
-  <footer>⚠ Pure simulation. No real blockchain, cryptography, or funds are involved. All hashes are random.</footer>
+  <footer>⚠ The network view, shielding and transfers are a simulation (random hashes, no real cryptography or funds). Only the Live Token Scan panel shows real, public Solana data.</footer>
 </div>
 
 <script>
@@ -131,13 +131,13 @@ const pulses=[];
   nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1});
   for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
     const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
-    if(d<150){cx.strokeStyle=`rgba(80,120,255,${.18*(1-d/150)})`;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
+    if(d<150){cx.strokeStyle=`rgba(110,150,130,${.18*(1-d/150)})`;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
   }
-  nodes.forEach(n=>{cx.fillStyle="rgba(0,240,255,.5)";cx.fillRect(n.x-1,n.y-1,2,2)});
+  nodes.forEach(n=>{cx.fillStyle="rgba(143,184,168,.35)";cx.fillRect(n.x-1,n.y-1,2,2)});
   if(Math.random()<.06){const a=nodes[ri(0,nodes.length-1)],b=nodes[ri(0,nodes.length-1)];pulses.push({a,b,t:0})}
   for(let i=pulses.length-1;i>=0;i--){const p=pulses[i];p.t+=.015;
     const x=p.a.x+(p.b.x-p.a.x)*p.t,y=p.a.y+(p.b.y-p.a.y)*p.t;
-    cx.fillStyle="#14f195";cx.shadowBlur=12;cx.shadowColor="#14f195";cx.beginPath();cx.arc(x,y,2.5,0,7);cx.fill();cx.shadowBlur=0;
+    cx.fillStyle="#5fae8a";cx.beginPath();cx.arc(x,y,2.5,0,7);cx.fill();
     if(p.t>=1)pulses.splice(i,1)}
   requestAnimationFrame(loop)
 })();
@@ -152,9 +152,9 @@ const sp=$("spark"),sc=sp.getContext("2d");
 function drawSpark(){
   const w=sp.width=sp.clientWidth*devicePixelRatio,h=sp.height=120*devicePixelRatio;
   const mx=Math.max(...series)*1.1,mn=Math.min(...series)*.9;
-  const g=sc.createLinearGradient(0,0,0,h);g.addColorStop(0,"rgba(0,240,255,.45)");g.addColorStop(1,"rgba(153,69,255,0)");
+  const g=sc.createLinearGradient(0,0,0,h);g.addColorStop(0,"rgba(143,184,168,.35)");g.addColorStop(1,"rgba(179,155,92,0)");
   sc.beginPath();series.forEach((v,i)=>{const x=i/(series.length-1)*w,y=h-(v-mn)/(mx-mn)*h;i?sc.lineTo(x,y):sc.moveTo(x,y)});
-  sc.strokeStyle="#00f0ff";sc.lineWidth=2*devicePixelRatio;sc.shadowBlur=10;sc.shadowColor="#00f0ff";sc.stroke();sc.shadowBlur=0;
+  sc.strokeStyle="#8fb8a8";sc.lineWidth=2*devicePixelRatio;sc.stroke();
   sc.lineTo(w,h);sc.lineTo(0,h);sc.fillStyle=g;sc.fill();
 }
 setInterval(()=>{
