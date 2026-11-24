@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NULLWAVE // Shielded Settlement Network (Simulation)</title>
+<style>
+  :root{
+    --bg:#05060d; --panel:rgba(12,16,32,.72); --line:rgba(120,140,255,.18);
+    --cyan:#00f0ff; --green:#14f195; --violet:#9945ff; --pink:#ff3df2; --text:#cfd8ff; --dim:#6b78a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px;overflow-x:hidden;min-height:100vh}
+  #bg{position:fixed;inset:0;z-index:0}
+  .scan{position:fixed;inset:0;pointer-events:none;z-index:5;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px)}
+  .wrap{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  .logo{font-size:22px;letter-spacing:.35em;font-weight:700;background:linear-gradient(90deg,var(--green),var(--cyan),var(--violet));-webkit-background-clip:text;color:transparent}
+  .logo small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);-webkit-text-fill-color:var(--dim)}
+  .badge{border:1px solid var(--line);padding:6px 12px;border-radius:999px;background:var(--panel);color:var(--dim)}
+  .badge b{color:var(--green)} .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);margin-right:6px;animation:pulse 1.4s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(10px);position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;inset:0;border-radius:14px;padding:1px;background:linear-gradient(135deg,rgba(0,240,255,.5),transparent 40%,rgba(153,69,255,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  h2{font-size:11px;letter-spacing:.28em;color:var(--dim);margin-bottom:12px;text-transform:uppercase}
+  .stat{grid-column:span 3}
+  .stat .v{font-size:30px;font-weight:700;color:#fff;text-shadow:0 0 18px rgba(0,240,255,.5)}
+  .stat .s{color:var(--dim);margin-top:4px;font-size:11px}
+  .wide{grid-column:span 8} .side{grid-column:span 4} .half{grid-column:span 6} .full{grid-column:span 12}
+  @media(max-width:900px){.stat{grid-column:span 6}.wide,.side,.half{grid-column:span 12}}
+  canvas.spark{width:100%;height:120px;display:block}
+  #feed{height:330px;overflow:hidden;display:flex;flex-direction:column-reverse}
+  .tx{display:grid;grid-template-columns:70px 1fr 90px;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(120,140,255,.12);animation:in .5s ease}
+  @keyframes in{from{opacity:0;transform:translateY(-8px);background:rgba(0,240,255,.15)}}
+  .tx .h{color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tx .a{color:var(--dim);text-align:right}
+  .tag{font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid}
+  .tag.z{color:var(--violet);border-color:var(--violet)} .tag.s{color:var(--green);border-color:var(--green)} .tag.m{color:var(--pink);border-color:var(--pink)}
+  label{display:block;color:var(--dim);font-size:11px;margin:10px 0 4px;letter-spacing:.15em}
+  input,select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);color:#fff;padding:10px;border-radius:8px;font:inherit;outline:none}
+  input:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.3)}
+  button{margin-top:14px;width:100%;padding:12px;border:0;border-radius:8px;font:inherit;font-weight:700;letter-spacing:.2em;cursor:pointer;color:#001014;background:linear-gradient(90deg,var(--green),var(--cyan));transition:.2s}
+  button:hover{filter:brightness(1.15);box-shadow:0 0 24px rgba(20,241,149,.5)} button:disabled{opacity:.4;cursor:wait}
+  #proc{margin-top:14px;min-height:150px}
+  .step{display:flex;gap:8px;align-items:center;padding:4px 0;color:var(--dim)}
+  .step.on{color:var(--cyan)} .step.done{color:var(--green)}
+  .step .i{width:14px;text-align:center}
+  .bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:10px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--cyan))}
+  .receipt{margin-top:12px;padding:10px;border:1px solid var(--green);border-radius:8px;color:var(--green);word-break:break-all;font-size:11px;display:none}
+  #vals{display:grid;grid-template-columns:repeat(auto-fill,minmax(26px,1fr));gap:5px}
+  .val{aspect-ratio:1;border-radius:5px;background:rgba(20,241,149,.25);border:1px solid rgba(20,241,149,.5);transition:.3s}
+  .val.lead{background:var(--cyan);box-shadow:0 0 14px var(--cyan)} .val.slow{background:rgba(255,61,242,.3);border-color:var(--pink)}
+  .addr{color:var(--violet)} .wallet-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(120,140,255,.12)}
+  .blur{filter:blur(5px);transition:.3s;cursor:pointer}.blur:hover{filter:none}
+  footer{margin:24px 0 8px;text-align:center;color:var(--dim);font-size:11px}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas><div class="scan"></div>
+<div class="wrap">
+  <header>
+    <div class="logo">NULLWAVE<small>SHIELDED SETTLEMENT LAYER · SIMULATION</small></div>
+    <div class="badge"><span class="dot"></span>CLUSTER <b>SIM-NET</b> · SLOT <b id="slot">0</b> · EPOCH <b id="epoch">0</b></div>
+  </header>
+
+  <div class="grid">
+    <div class="card stat"><h2>Throughput</h2><div class="v" id="tps">0</div><div class="s">shielded tx / sec</div></div>
+    <div class="card stat"><h2>Finality</h2><div class="v" id="fin">0 ms</div><div class="s">optimistic confirmation</div></div>
+    <div class="card stat"><h2>Anonymity Set</h2><div class="v" id="anon">0</div><div class="s">indistinguishable notes</div></div>
+    <div class="card stat"><h2>Proofs / slot</h2><div class="v" id="pps">0</div><div class="s">zk-SNARK verifications</div></div>
+
+    <div class="card wide"><h2>Network Throughput (live)</h2><canvas class="spark" id="spark"></canvas></div>
+    <div class="card side"><h2>Validator Constellation</h2><div id="vals"></div>
+      <div class="s" style="color:var(--dim);margin-top:10px;font-size:11px"><span style="color:var(--cyan)">■</span> slot leader &nbsp; <span style="color:var(--pink)">■</span> delinquent</div></div>
+
+    <div class="card wide"><h2>Mempool · Encrypted Transaction Stream</h2><div id="feed"></div></div>
+
+    <div class="card side">
+      <h2>Send Shielded Transfer</h2>
+      <label>FROM</label><select id="from"><option>Shadow Vault · ◈ 1,204.77</option><option>Ghost Wallet · ◈ 88.10</option></select>
+      <label>TO (STEALTH ADDRESS)</label><input id="to" value="nw1q7x…auto-generated">
+      <label>AMOUNT (◈ NULL)</label><input id="amt" type="number" value="42.5">
+      <button id="send">ENCRYPT &amp; BROADCAST</button>
+      <div id="proc"></div><div class="bar"><i id="pbar"></i></div>
+      <div class="receipt" id="rcpt"></div>
+    </div>
+
+    <div class="card half"><h2>Wallet · Viewing Key Mode</h2>
+      <div class="wallet-row"><span>Balance</span><span class="blur">◈ 1,204.7700</span></div>
+      <div class="wallet-row"><span>Active stealth address</span><span class="addr blur" id="stealth">—</span></div>
+      <div class="wallet-row"><span>Nullifier set</span><span class="blur" id="nulls">—</span></div>
+      <div class="wallet-row"><span>Last note commitment</span><span class="blur" id="commit">—</span></div>
+      <div class="s" style="color:var(--dim);margin-top:10px;font-size:11px">Hover values to reveal. Everything here is randomly generated.</div>
+    </div>
+    <div class="card half"><h2>Privacy Pipeline</h2>
+      <div class="step done"><span class="i">✓</span>Note commitment (Poseidon-style hash)</div>
+      <div class="step done"><span class="i">✓</span>Merkle membership proof (depth 32)</div>
+      <div class="step done"><span class="i">✓</span>Nullifier derivation (prevents double-spend)</div>
+      <div class="step done"><span class="i">✓</span>Groth-style proof generation (client-side)</div>
+      <div class="step done"><span class="i">✓</span>Onchain verifier program (BPF)</div>
+      <div class="step done"><span class="i">✓</span>Stealth address rotation per payment</div>
+    </div>
+  </div>
+  <footer>⚠ Pure simulation. No real blockchain, cryptography, or funds are involved. All hashes are random.</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const B58="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const rnd=(a,b)=>Math.random()*(b-a)+a, ri=(a,b)=>Math.floor(rnd(a,b+1));
+const b58=n=>Array.from({length:n},()=>B58[ri(0,57)]).join("");
+const hex=n=>Array.from({length:n},()=>ri(0,15).toString(16)).join("");
+
+/* background network */
+const bg=$("bg"),cx=bg.getContext("2d");let W,H,nodes=[];
+function rs(){W=bg.width=innerWidth;H=bg.height=innerHeight;nodes=Array.from({length:Math.min(90,W/16)},()=>({x:rnd(0,W),y:rnd(0,H),vx:rnd(-.25,.25),vy:rnd(-.25,.25)}))}
+addEventListener("resize",rs);rs();
+const pulses=[];
+(function loop(){
+  cx.clearRect(0,0,W,H);
+  nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1});
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+    const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(d<150){cx.strokeStyle=`rgba(80,120,255,${.18*(1-d/150)})`;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
+  }
+  nodes.forEach(n=>{cx.fillStyle="rgba(0,240,255,.5)";cx.fillRect(n.x-1,n.y-1,2,2)});
+  if(Math.random()<.06){const a=nodes[ri(0,nodes.length-1)],b=nodes[ri(0,nodes.length-1)];pulses.push({a,b,t:0})}
+  for(let i=pulses.length-1;i>=0;i--){const p=pulses[i];p.t+=.015;
+    const x=p.a.x+(p.b.x-p.a.x)*p.t,y=p.a.y+(p.b.y-p.a.y)*p.t;
+    cx.fillStyle="#14f195";cx.shadowBlur=12;cx.shadowColor="#14f195";cx.beginPath();cx.arc(x,y,2.5,0,7);cx.fill();cx.shadowBlur=0;
+    if(p.t>=1)pulses.splice(i,1)}
+  requestAnimationFrame(loop)
+})();
+
+/* validators */
+const vals=$("vals");const vEls=[];
+for(let i=0;i<96;i++){const d=document.createElement("div");d.className="val";if(Math.random()<.04)d.classList.add("slow");vals.appendChild(d);vEls.push(d)}
+
+/* stats + sparkline */
+let slot=287340120,series=Array(80).fill(52000);
+const sp=$("spark"),sc=sp.getContext("2d");
+function drawSpark(){
+  const w=sp.width=sp.clientWidth*devicePixelRatio,h=sp.height=120*devicePixelRatio;
+  const mx=Math.max(...series)*1.1,mn=Math.min(...series)*.9;
+  const g=sc.createLinearGradient(0,0,0,h);g.addColorStop(0,"rgba(0,240,255,.45)");g.addColorStop(1,"rgba(153,69,255,0)");
+  sc.beginPath();series.forEach((v,i)=>{const x=i/(series.length-1)*w,y=h-(v-mn)/(mx-mn)*h;i?sc.lineTo(x,y):sc.moveTo(x,y)});
+  sc.strokeStyle="#00f0ff";sc.lineWidth=2*devicePixelRatio;sc.shadowBlur=10;sc.shadowColor="#00f0ff";sc.stroke();sc.shadowBlur=0;
+  sc.lineTo(w,h);sc.lineTo(0,h);sc.fillStyle=g;sc.fill();
+}
+setInterval(()=>{
+  slot++;$("slot").textContent=slot.toLocaleString();$("epoch").textContent=Math.floor(slot/432000);
+  const t=Math.round(series[series.length-1]*.85+rnd(40000,65000)*.15);series.push(t);series.shift();drawSpark();
+  $("tps").textContent=t.toLocaleString();$("fin").textContent=ri(380,460)+" ms";
+  $("anon").textContent=(4210000+ri(0,9000)).toLocaleString();$("pps").textContent=ri(1800,2600).toLocaleString();
+  vEls.forEach(v=>v.classList.remove("lead"));vEls[ri(0,95)].classList.add("lead");
+},400);
+
+/* feed */
+const feed=$("feed");
+function addTx(h,label,cls,amt){
+  const d=document.createElement("div");d.className="tx";
+  d.innerHTML=`<span class="tag ${cls}">${label}</span><span class="h">${h}</span><span class="a">${amt}</span>`;
+  feed.prepend(d);while(feed.children.length>14)feed.lastChild.remove();
+}
+const kinds=[["ZK-SHIELD","z"],["STEALTH","s"],["MIXED","m"]];
+setInterval(()=>{const k=kinds[ri(0,2)];addTx("0x"+hex(40)+"…",k[0],k[1],"▒▒▒▒ ◈")},350);
+
+/* wallet */
+function rot(){$("stealth").textContent="nw1"+b58(12)+"…"+b58(4);$("nulls").textContent="0x"+hex(14)+"…";$("commit").textContent="0x"+hex(14)+"…"}
+rot();setInterval(rot,5000);
+
+/* send flow */
+const steps=["Deriving one-time stealth address","Hashing note commitment","Building Merkle path (depth 32)","Generating zero-knowledge proof","Encrypting memo (X25519 + AEAD)","Broadcasting to slot leader","Verifier program accepted proof"];
+$("send").onclick=async()=>{
+  const btn=$("send");btn.disabled=true;$("rcpt").style.display="none";$("pbar").style.width="0";
+  $("proc").innerHTML=steps.map((s,i)=>`<div class="step" id="st${i}"><span class="i">·</span>${s}</div>`).join("");
+  for(let i=0;i<steps.length;i++){
+    const e=$("st"+i);e.className="step on";e.firstChild.textContent="›";
+    $("pbar").style.width=((i+1)/steps.length*100)+"%";
+    await new Promise(r=>setTimeout(r,i==3?1400:500));
+    e.className="step done";e.firstChild.textContent="✓";
+  }
+  const sig=b58(88);addTx("0x"+hex(40)+"… (yours)","ZK-SHIELD","z","▒▒▒▒ ◈");
+  const r=$("rcpt");r.style.display="block";
+  r.innerHTML=`CONFIRMED · slot ${slot.toLocaleString()}<br>sig: ${sig.slice(0,44)}…<br>amount, sender &amp; receiver hidden onchain`;
+  btn.disabled=false;
+};
+</script>
+</body>
+</html>
