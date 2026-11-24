@@ -21,7 +21,7 @@ const $=i=>document.getElementById(i);
 async function go(mint){
   const m=$("m");m.className="";m.textContent="Working…";
   try{
-    const r=await fetch("/api/admin/feature",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+$("t").value},body:JSON.stringify({mint})});
+    const r=await fetch("/api/admin/feature",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+$("t").value.trim()},body:JSON.stringify({mint})});
     const d=await r.json();if(!r.ok)throw new Error(d.error||"Failed");
     m.className="ok";m.textContent=d.cleared?"Cleared. Viewers will see no featured token.":"Now featuring "+(d.symbol||d.name||"token")+" · "+d.mint;
   }catch(e){m.className="er";m.textContent=e.message}
