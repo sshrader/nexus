@@ -1,5 +1,5 @@
 FROM node:20-alpine
 WORKDIR /app
-COPY package.json server.js index.html ./
+COPY package.json server.js index.html admin.html ./
 ENV NODE_ENV=production
 CMD ["node", "server.js"]

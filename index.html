@@ -103,12 +103,8 @@
       <div class="step done"><span class="i">✓</span>Onchain verifier program (BPF)</div>
       <div class="step done"><span class="i">✓</span>Stealth address rotation per payment</div>
     </div>
-    <div class="card full" id="scanCard"><h2>Live Token Scan · Real Mainnet Data (on demand)</h2>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <input id="mint" placeholder="Paste a token mint address (CA)" style="flex:1;min-width:260px">
-        <button id="scanBtn" style="width:auto;margin:0;padding:10px 24px">SCAN ONCE</button>
-      </div>
-      <div id="scanOut" style="margin-top:14px;color:var(--dim)">Runs only when you press the button. Results are cached for 60s. This data is public and real.</div>
+    <div class="card full" id="scanCard"><h2>Featured Token · Real Mainnet Data</h2>
+      <div id="scanOut" style="color:var(--dim)">Loading…</div>
     </div>
   </div>
   <footer>⚠ The network view, shielding and transfers are a simulation (random hashes, no real cryptography or funds). Only the Live Token Scan panel shows real, public Solana data.</footer>
@@ -195,26 +191,29 @@ $("send").onclick=async()=>{
   r.innerHTML=`CONFIRMED · slot ${slot.toLocaleString()}<br>sig: ${sig.slice(0,44)}…<br>amount, sender &amp; receiver hidden onchain`;
   btn.disabled=false;
 };
-/* real token scan (manual only) */
+/* featured token (loaded once per page view; server caches) */
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const short=a=>a? a.slice(0,5)+"…"+a.slice(-5):"";
-$("scanBtn").onclick=async()=>{
-  const out=$("scanOut"),b=$("scanBtn");b.disabled=true;out.textContent="Querying mainnet…";
+(async()=>{
+  const out=$("scanOut");
   try{
-    const r=await fetch("/api/token?mint="+encodeURIComponent($("mint").value.trim()));
-    const d=await r.json();if(!r.ok)throw new Error(d.error||"Request failed");
-    const flag=(v,good)=>`<b style="color:${v===null?"var(--green)":"var(--pink)"}">${v===null?good:short(v)}</b>`;
-    out.innerHTML=`<div class="wallet-row"><span>Mint</span><span class="addr">${d.mint}</span></div>
-      <div class="wallet-row"><span>Supply</span><span>${Number(d.supply).toLocaleString()} (${d.decimals} decimals)</span></div>
+    const r=await fetch("/api/featured");const d=await r.json();
+    if(d.none){out.textContent="No token is featured right now.";return}
+    if(!r.ok)throw new Error(d.error||"Request failed");
+    const flag=(v,good)=>`<b style="color:${v===null?"var(--green)":"var(--pink)"}">${v===null?good:esc(short(v))}</b>`;
+    const title=[d.name,d.symbol&&"("+d.symbol+")"].filter(Boolean).map(esc).join(" ");
+    out.innerHTML=`${title?`<div style="font-size:18px;color:#fff;margin-bottom:8px">${title}</div>`:""}
+      <div class="wallet-row"><span>Mint</span><span class="addr">${esc(d.mint)}</span></div>
+      <div class="wallet-row"><span>Supply</span><span>${esc(Number(d.supply).toLocaleString())} (${esc(d.decimals)} decimals)</span></div>
       <div class="wallet-row"><span>Mint authority</span>${flag(d.mintAuthority,"renounced")}</div>
       <div class="wallet-row"><span>Freeze authority</span>${flag(d.freezeAuthority,"none")}</div>
       <h2 style="margin-top:14px">Top token accounts (% of supply)</h2>
-      ${d.topAccounts.map(a=>`<div class="wallet-row"><span class="addr">${short(a.address)}</span><span>${a.pct}%</span></div>`).join("")}
+      ${d.topAccounts.map(a=>`<div class="wallet-row"><span class="addr">${esc(short(a.address))}</span><span>${esc(a.pct)}%</span></div>`).join("")}
       <h2 style="margin-top:14px">Latest on-chain signatures</h2>
-      ${d.recent.map(t=>`<div class="tx"><span class="tag ${t.ok?"s":"m"}">${t.ok?"OK":"FAIL"}</span><span class="h">${t.sig}</span><span class="a">slot ${t.slot}</span></div>`).join("")}
-      <div style="margin-top:8px;font-size:11px">${d.cached?"served from cache":"fresh from RPC"} · public data, no privacy layer applied</div>`;
+      ${d.recent.map(t=>`<div class="tx"><span class="tag ${t.ok?"s":"m"}">${t.ok?"OK":"FAIL"}</span><span class="h">${esc(t.sig)}</span><span class="a">slot ${esc(t.slot)}</span></div>`).join("")}
+      <div style="margin-top:8px;font-size:11px">Snapshot from ${new Date(d.fetchedAt).toLocaleTimeString()} · public data, no privacy layer applied</div>`;
   }catch(e){out.textContent="⚠ "+e.message}
-  b.disabled=false;
-};
+})();
 </script>
 </body>
 </html>

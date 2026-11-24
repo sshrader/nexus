@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Admin</title>
+<style>
+body{background:#07090a;color:#b9c4bd;font:13px ui-monospace,Menlo,Consolas,monospace;display:grid;place-items:center;min-height:100vh;margin:0}
+.c{width:min(520px,92vw);border:1px solid rgba(140,170,150,.25);background:#0d1110;padding:22px;border-radius:3px}
+h1{font-size:12px;letter-spacing:.3em;color:#667369;margin:0 0 16px}
+label{display:block;color:#667369;font-size:11px;letter-spacing:.15em;margin:12px 0 4px}
+input{width:100%;box-sizing:border-box;background:#000;border:1px solid rgba(140,170,150,.25);color:#fff;padding:10px;font:inherit;border-radius:3px}
+.r{display:flex;gap:10px}button{flex:1;margin-top:14px;padding:11px;border:0;border-radius:3px;font:inherit;font-weight:700;letter-spacing:.2em;cursor:pointer;background:#5fae8a;color:#06100c}
+button.g{background:transparent;border:1px solid #c0624f;color:#c0624f}
+#m{margin-top:14px;min-height:18px;word-break:break-all}.ok{color:#5fae8a}.er{color:#c0624f}
+</style></head><body><div class="c">
+<h1>ADMIN · FEATURED TOKEN</h1>
+<label>ADMIN TOKEN</label><input id="t" type="password" autocomplete="off">
+<label>TOKEN MINT ADDRESS (CA)</label><input id="m1" placeholder="Paste mint address" autocomplete="off">
+<div class="r"><button id="set">FEATURE</button><button id="clr" class="g">CLEAR</button></div>
+<div id="m"></div></div>
+<script>
+const $=i=>document.getElementById(i);
+async function go(mint){
+  const m=$("m");m.className="";m.textContent="Working…";
+  try{
+    const r=await fetch("/api/admin/feature",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+$("t").value},body:JSON.stringify({mint})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||"Failed");
+    m.className="ok";m.textContent=d.cleared?"Cleared. Viewers will see no featured token.":"Now featuring "+(d.symbol||d.name||"token")+" · "+d.mint;
+  }catch(e){m.className="er";m.textContent=e.message}
+}
+$("set").onclick=()=>go($("m1").value.trim());
+$("clr").onclick=()=>go("");
+</script></body></html>
