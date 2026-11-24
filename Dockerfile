@@ -1,3 +1,5 @@
-FROM caddy:2-alpine
-COPY index.html /srv/index.html
-CMD ["sh", "-c", "caddy file-server --root /srv --listen :${PORT:-8080}"]
+FROM node:20-alpine
+WORKDIR /app
+COPY package.json server.js index.html ./
+ENV NODE_ENV=production
+CMD ["node", "server.js"]

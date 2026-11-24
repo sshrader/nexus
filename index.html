@@ -77,6 +77,14 @@
 
     <div class="card wide"><h2>Mempool · Encrypted Transaction Stream</h2><div id="feed"></div></div>
 
+    <div class="card full" id="scanCard"><h2>Live Token Scan · Real Mainnet Data (on demand)</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input id="mint" placeholder="Paste a token mint address (CA)" style="flex:1;min-width:260px">
+        <button id="scanBtn" style="width:auto;margin:0;padding:10px 24px">SCAN ONCE</button>
+      </div>
+      <div id="scanOut" style="margin-top:14px;color:var(--dim)">Runs only when you press the button. Results are cached for 60s. This data is public and real.</div>
+    </div>
+
     <div class="card side">
       <h2>Send Shielded Transfer</h2>
       <label>FROM</label><select id="from"><option>Shadow Vault · ◈ 1,204.77</option><option>Ghost Wallet · ◈ 88.10</option></select>
@@ -186,6 +194,26 @@ $("send").onclick=async()=>{
   const r=$("rcpt");r.style.display="block";
   r.innerHTML=`CONFIRMED · slot ${slot.toLocaleString()}<br>sig: ${sig.slice(0,44)}…<br>amount, sender &amp; receiver hidden onchain`;
   btn.disabled=false;
+};
+/* real token scan (manual only) */
+const short=a=>a? a.slice(0,5)+"…"+a.slice(-5):"";
+$("scanBtn").onclick=async()=>{
+  const out=$("scanOut"),b=$("scanBtn");b.disabled=true;out.textContent="Querying mainnet…";
+  try{
+    const r=await fetch("/api/token?mint="+encodeURIComponent($("mint").value.trim()));
+    const d=await r.json();if(!r.ok)throw new Error(d.error||"Request failed");
+    const flag=(v,good)=>`<b style="color:${v===null?"var(--green)":"var(--pink)"}">${v===null?good:short(v)}</b>`;
+    out.innerHTML=`<div class="wallet-row"><span>Mint</span><span class="addr">${d.mint}</span></div>
+      <div class="wallet-row"><span>Supply</span><span>${Number(d.supply).toLocaleString()} (${d.decimals} decimals)</span></div>
+      <div class="wallet-row"><span>Mint authority</span>${flag(d.mintAuthority,"renounced")}</div>
+      <div class="wallet-row"><span>Freeze authority</span>${flag(d.freezeAuthority,"none")}</div>
+      <h2 style="margin-top:14px">Top token accounts (% of supply)</h2>
+      ${d.topAccounts.map(a=>`<div class="wallet-row"><span class="addr">${short(a.address)}</span><span>${a.pct}%</span></div>`).join("")}
+      <h2 style="margin-top:14px">Latest on-chain signatures</h2>
+      ${d.recent.map(t=>`<div class="tx"><span class="tag ${t.ok?"s":"m"}">${t.ok?"OK":"FAIL"}</span><span class="h">${t.sig}</span><span class="a">slot ${t.slot}</span></div>`).join("")}
+      <div style="margin-top:8px;font-size:11px">${d.cached?"served from cache":"fresh from RPC"} · public data, no privacy layer applied</div>`;
+  }catch(e){out.textContent="⚠ "+e.message}
+  b.disabled=false;
 };
 </script>
 </body>
